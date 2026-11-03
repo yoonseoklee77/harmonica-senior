@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <style>*{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
-<title>하모니카 연습곡</title>
+<title>시니어 하모니카 연습곡</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Noto+Sans+KR:wght@500;700;900&display=swap">
 <style>
 /* Layout: one column of large song cards, newest first; one big play button per recording */
@@ -46,7 +46,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--body); font-
 
 header { display: grid; gap: 6px; padding-block: 8px 4px; }
 .teacher { color: var(--muted); font-weight: 700; }
-h1 { font-family: var(--display); font-size: 2.1em; line-height: 1.2; margin: 0; text-wrap: balance; }
+h1 { font-family: var(--display); font-size: min(2.1em, calc((100vw - 32px) / 11.5)); line-height: 1.2; margin: 0; text-wrap: balance; }
 .howto { margin: 4px 0 0; color: var(--muted); font-size: 0.95em; }
 
 .sizebar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -88,8 +88,8 @@ footer { color: var(--muted); font-size: 0.9em; text-align: center; padding-top:
 <body>
 <div class="wrap">
   <header>
-    <div class="teacher" id="teacher">이윤석 선생님 하모니카 교실</div>
-    <h1 id="pagetitle">하모니카 연습곡</h1>
+    <div class="teacher" id="teacher">한국기독교하모니카협회: 이윤석</div>
+    <h1 id="pagetitle">시니어 하모니카 연습곡</h1>
     <p class="howto" id="howto">듣고 싶은 곡의 파란 버튼을 누르세요. 새로 올라온 곡이 맨 위에 있습니다.</p>
   </header>
 
