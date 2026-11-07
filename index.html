@@ -163,6 +163,8 @@ function isNewSong(song, date) {
 }
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const audioUrl = f => /^https?:\/\//.test(f) ? f : AUDIO_FOLDER + f.split("/").map(encodeURIComponent).join("/");
+/* 맥에서 올린 한글 파일 이름은 자모가 나뉘어 저장되므로 두 가지 이름을 모두 시도 */
+const audioUrls = f => [...new Set([f.normalize("NFC"), f.normalize("NFD"), f].map(audioUrl))];
 
 async function loadText() {
   try {
@@ -239,7 +241,7 @@ function toggle(c) {
   }
   stopCurrent();
   if (c.getUrl) prepareAndPlay(c, 0, true);
-  else startUrl(c, c.url, 0, true);
+  else { c.ui = 0; startUrl(c, c.urls[0], 0, true); }
 }
 audio.addEventListener("timeupdate", () => {
   if (!current || current.btn.disabled) return;
@@ -250,6 +252,7 @@ audio.addEventListener("timeupdate", () => {
 audio.addEventListener("ended", () => { if (current) setBtn(current, false); });
 audio.addEventListener("error", () => {
   if (!current || !audio.getAttribute("src") || current.getUrl) return;
+  if (current.ui < current.urls.length - 1) { current.ui++; startUrl(current, current.urls[current.ui], 0, true); return; }
   showErr(current, `음원 파일을 찾을 수 없습니다 (${current.file})`);
 });
 
@@ -261,9 +264,11 @@ function getCtx() {
   return decodeCtx;
 }
 async function loadMono(file) {
-  let r;
-  try { r = await fetch(audioUrl(file)); } catch (e) { throw { file }; }
-  if (!r.ok) throw { file };
+  let r = null;
+  for (const u of audioUrls(file)) {
+    try { const x = await fetch(u); if (x.ok) { r = x; break; } } catch (e) {}
+  }
+  if (!r) throw { file };
   const ab = await r.arrayBuffer();
   const b = await new Promise((ok, no) => getCtx().decodeAudioData(ab, ok, no)).catch(() => { throw { file }; });
   const n = b.length, ch = b.numberOfChannels, out = new Int16Array(n);
@@ -419,7 +424,7 @@ function render({ settings, songs }) {
             <button class="ctl loop" id="${id}-loop" aria-pressed="false">계속 반복</button>
           </div>
         </div>`;
-      const c = { id, card, label: k.label, title: song["제목"], url: audioUrl(file), file,
+      const c = { id, card, label: k.label, title: song["제목"], urls: audioUrls(file), ui: 0, file,
         btn: wrap.querySelector(".play"), panel: wrap.querySelector(".panel"), err: wrap.querySelector(".err") };
       setBtn(c, false);
       c.btn.addEventListener("click", () => toggle(c));
