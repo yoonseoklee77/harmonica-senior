@@ -404,7 +404,7 @@ function render({ settings, songs }) {
     const parts = ["1", "2", "3", "4"].filter(n => song[n + "파트"]).map(n => ({ n, file: song[n + "파트"] }));
     const ensemble = parts.length >= 2;
     const kinds = TRACK_KINDS.filter(k => {
-      if (ensemble && (/파트$/.test(k.key) || k.key === "반주")) return false;
+      if (ensemble && /파트$/.test(k.key)) return false;
       return song[k.key] || (k.key === "연주" && song["음원"]);
     });
     if (!kinds.length && !ensemble) card.insertAdjacentHTML("beforeend", '<p class="note">녹음을 준비하고 있습니다.</p>');
