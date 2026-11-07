@@ -93,7 +93,8 @@ input[type=range] { width: 100%; height: 44px; accent-color: var(--playing); mar
 
 .state { background: var(--card); border: 2px dashed var(--line); border-radius: 18px; padding: 24px 20px; color: var(--muted); font-weight: 700; text-align: center; margin: 0; }
 footer { color: var(--muted); font-size: 0.9em; text-align: center; padding-top: 8px; display: grid; gap: 14px; justify-items: center; }
-.reload { font-size: 1.05em; padding: 0 24px; }
+.reload { font: inherit; font-weight: 700; font-size: 1.05em; min-height: 52px; padding: 0 24px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+.reload:focus-visible { outline: 4px solid var(--ink); outline-offset: 3px; }
 @media (max-width: 380px) { .ctls { grid-template-columns: 1fr 1fr; } }
 @media (prefers-reduced-motion: no-preference) { .play, .ctl, .pp { transition: background .15s, transform .1s; } .play:active { transform: scale(.98); } }
 </style>
@@ -115,7 +116,7 @@ footer { color: var(--muted); font-size: 0.9em; text-align: center; padding-top:
   <main id="list"><p class="state">곡 목록을 불러오는 중입니다…</p></main>
 
   <footer>
-    <button class="sizebtn reload" id="reload">화면 새로 고치기</button>
+    <button class="reload" id="reload">화면 새로 고치기</button>
     <div>궁금한 점은 수업 시간에 물어보세요.</div>
   </footer>
 </div>
@@ -478,13 +479,15 @@ window.addEventListener("focus", () => refresh());
 document.getElementById("reload").addEventListener("click", hardReload);
 
 /* ---------- 글자 크기 ---------- */
+const SCALES = ["1", "1.2"];
 function setScale(s) {
+  if (!SCALES.includes(s)) s = "1";
   document.documentElement.style.setProperty("--scale", s);
   document.querySelectorAll(".sizebtn").forEach(b => b.setAttribute("aria-pressed", b.dataset.scale === s));
   try { localStorage.setItem("fontScale", s); } catch (e) {}
 }
-document.querySelectorAll(".sizebtn").forEach(b => b.addEventListener("click", () => setScale(b.dataset.scale)));
-try { const s = localStorage.getItem("fontScale"); if (s) setScale(s); } catch (e) {}
+document.querySelectorAll(".sizebtn[data-scale]").forEach(b => b.addEventListener("click", () => setScale(b.dataset.scale)));
+try { setScale(localStorage.getItem("fontScale") || "1"); } catch (e) { setScale("1"); }
 </script>
 
 </body>
