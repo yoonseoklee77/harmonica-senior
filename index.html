@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f4fb8">
+<meta name="self-update" content="on">
 <meta name="apple-mobile-web-app-title" content="하모니카">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
@@ -91,7 +92,8 @@ input[type=range] { width: 100%; height: 44px; accent-color: var(--playing); mar
 .ens-hint { margin: 0; color: var(--new); font-weight: 900; }
 
 .state { background: var(--card); border: 2px dashed var(--line); border-radius: 18px; padding: 24px 20px; color: var(--muted); font-weight: 700; text-align: center; margin: 0; }
-footer { color: var(--muted); font-size: 0.9em; text-align: center; padding-top: 8px; }
+footer { color: var(--muted); font-size: 0.9em; text-align: center; padding-top: 8px; display: grid; gap: 14px; justify-items: center; }
+.reload { font-size: 1.05em; padding: 0 24px; }
 @media (max-width: 380px) { .ctls { grid-template-columns: 1fr 1fr; } }
 @media (prefers-reduced-motion: no-preference) { .play, .ctl, .pp { transition: background .15s, transform .1s; } .play:active { transform: scale(.98); } }
 </style>
@@ -112,7 +114,10 @@ footer { color: var(--muted); font-size: 0.9em; text-align: center; padding-top:
 
   <main id="list"><p class="state">곡 목록을 불러오는 중입니다…</p></main>
 
-  <footer>궁금한 점은 수업 시간에 물어보세요.</footer>
+  <footer>
+    <button class="sizebtn reload" id="reload">화면 새로 고치기</button>
+    <div>궁금한 점은 수업 시간에 물어보세요.</div>
+  </footer>
 </div>
 
 <script>
@@ -445,9 +450,32 @@ function render({ settings, songs }) {
   });
 }
 
-loadText().then(t => render(parseSongs(t))).catch(() => {
+/* ---------- 최신 내용 확인 (홈 화면 아이콘으로 열었을 때도) ---------- */
+let lastSongsText = null, pageSrc = null;
+const selfUpdate = !!document.querySelector('meta[name="self-update"]');
+function hardReload() { location.replace(location.pathname + "?v=" + Date.now()); }
+async function fetchPage() {
+  const r = await fetch(location.pathname + "?check=" + Date.now(), { cache: "no-store" });
+  return r.ok ? r.text() : null;
+}
+async function refresh() {
+  if (current && !audio.paused) return;          // 듣는 중에는 건드리지 않음
+  if (selfUpdate) {
+    try { const src = await fetchPage(); if (src && pageSrc && src !== pageSrc) { hardReload(); return; } if (src && !pageSrc) pageSrc = src; } catch (e) {}
+  }
+  try {
+    const t = await loadText();
+    if (t !== lastSongsText) { lastSongsText = t; stopCurrent(); render(parseSongs(t)); }
+  } catch (e) {}
+}
+loadText().then(t => { lastSongsText = t; render(parseSongs(t)); }).catch(() => {
   document.getElementById("list").innerHTML = '<p class="state">곡 목록을 불러오지 못했습니다.<br>인터넷 연결을 확인하고 화면을 다시 열어 주세요.</p>';
 });
+if (selfUpdate) fetchPage().then(src => { if (src && !pageSrc) pageSrc = src; }).catch(() => {});
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
+window.addEventListener("pageshow", e => { if (e.persisted) refresh(); });
+window.addEventListener("focus", () => refresh());
+document.getElementById("reload").addEventListener("click", hardReload);
 
 /* ---------- 글자 크기 ---------- */
 function setScale(s) {
